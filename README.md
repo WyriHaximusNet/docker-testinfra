@@ -1,2 +1,1 @@
-# docker-testinfra
-Testinfra Docker container
+# Testinfra Docker container
