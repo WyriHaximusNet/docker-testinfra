@@ -80,37 +80,37 @@ jobs:
       - run: docker load --input /tmp/docker-image/docker_image-${{ env.PLATFORM_PAIR }}.tar
       - run: rm -Rf /tmp/docker-image/
       - run: echo -e "${{ env.DOCKER_IMAGE }}:${{ env.PLATFORM_PAIR }}" | xargs -I % sh -c 'docker run -v /tmp/trivy:/var/lib/trivy -v /var/run/docker.sock:/var/run/docker.sock -t aquasec/trivy:latest --cache-dir /var/lib/trivy image --exit-code 1 --no-progress --format table % || true'
-#  tests:
-#    name: Test ${{ matrix.platform }}
-#    needs:
-#      - supported-platform-matrix
-#      - scan-vulnerability
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        platform: ${{ fromJson(needs.supported-platform-matrix.outputs.platform) }}
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Prepare
-#        run: |
-#          platform=${{ matrix.platform }}
-#          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v3
-#      - uses: actions/checkout@v4
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: docker-image-${{ env.PLATFORM_PAIR }}
-#          path: /tmp/docker-image
-#      - run: docker load --input /tmp/docker-image/docker_image-${{ env.PLATFORM_PAIR }}.tar
-#      - run: docker image ls -a
-#      - run: ./tests.sh "${DOCKER_IMAGE}:${{ env.PLATFORM_PAIR }}"
+  tests:
+    name: Test ${{ matrix.platform }}
+    needs:
+      - supported-platform-matrix
+      - scan-vulnerability
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJson(needs.supported-platform-matrix.outputs.platform) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image-${{ env.PLATFORM_PAIR }}
+          path: /tmp/docker-image
+      - run: docker load --input /tmp/docker-image/docker_image-${{ env.PLATFORM_PAIR }}.tar
+      - run: docker image ls -a
+      - run: docker run --platform "${{ matrix.platform }}" --rm -v "$(pwd)/tests:/tests" -v "/var/run/docker.sock:/var/run/docker.sock:ro" -t "${DOCKER_IMAGE}:${{ env.PLATFORM_PAIR }}" --verbose
   push-image:
     if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
     name: Push
     needs:
       - supported-platform-matrix
-#      - tests
+      - tests
     runs-on: ubuntu-latest
     services:
       registry:
