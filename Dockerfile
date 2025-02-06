@@ -17,12 +17,13 @@ LABEL org.label-schema.title="Testinfra Docker container" \
       org.opencontainers.image.vendor="WyriHaximus.net" \
       org.opencontainers.image.authors="Cees-Jan Kiewiet <docker-php@ceesjankiewiet.nl>"
 
-WORKDIR /project
-
-# hadolint ignore=DL3018
-RUN apk add --no-cache docker python3 py-pip
-# hadolint ignore=DL3013
-RUN pip install --no-cache-dir docker --break-system-packages && \
+# hadolint ignore=DL3018,DL3013
+RUN set -e && \
+    apk add --no-cache docker python3 py-pip && \
+    pip3 install --no-cache-dir --upgrade pip --break-system-packages && \
+    pip install --no-cache-dir docker --break-system-packages && \
     pip install --no-cache-dir pytest-testinfra --break-system-packages
+
+WORKDIR /tests
 
 ENTRYPOINT ["py.test", "-p", "no:cacheprovider"]
