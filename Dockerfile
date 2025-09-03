@@ -1,4 +1,4 @@
-FROM alpine:3.21.3
+FROM alpine:3.22.1
 
 # Build-time metadata as defined at http://label-schema.org and https://github.com/opencontainers/image-spec/blob/main/annotations.md#pre-defined-annotation-keys
 LABEL org.label-schema.title="Testinfra Docker container" \
